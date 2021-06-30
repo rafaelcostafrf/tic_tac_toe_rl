@@ -1,6 +1,4 @@
 import sys
-sys.path.append('/home/rafael/mestrado/quadrotor_environment/')
-
 import torch
 import torch.nn as nn
 import numpy as np

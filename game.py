@@ -8,11 +8,13 @@ class game():
         self.winner = None
 
     def reset(self):
+        # Resets the board for the next game
         self.board = [[''] * 3 for _ in range(3)]
         self.winner = None
         return self.board
 
     def step(self, mark, place):
+        # Goes a step forward on the board, checks if terminal and its rewards
         self.current_player = mark.lower()
         reward = 0
         done = False
@@ -31,6 +33,7 @@ class game():
         return self.board, reward, done
 
     def get_reward(self):
+        # Checks terminal states and current reward
         reward = 0
         done = False
         winner = None
@@ -53,6 +56,7 @@ class game():
         return reward, done, winner
 
     def check_horizontal(self):
+        # Horizontal win terminal state
         for row in self.board:
             counter = {'x': 0, 'o': 0}
             for column in row:
@@ -64,6 +68,7 @@ class game():
 
 
     def check_diagonal(self):
+        # Diagonal win terminal state
         counter = {'x': 0, 'o': 0}
         anti_counter = {'x': 0, 'o': 0}
         for i in range(3):
@@ -78,6 +83,7 @@ class game():
         return False
 
     def check_vertical(self):
+        # Vertical win terminal state
         for i in range(3):
             counter = {'x': 0, 'o': 0}
             for j in range(3):
@@ -88,6 +94,8 @@ class game():
         return False
 
     def check_top_marks(self):
+        # Top row terminal state (only when the board is full)
+        # If the board is full, checks the top row
         counter = 0
         counter_player = {'x': 0, 'o': 0}
         for row in self.board:
