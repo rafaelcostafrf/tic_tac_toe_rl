@@ -48,3 +48,5 @@ To play with the network, just run gui.py
 To see the demo, change the demo flag inside gui.py to "demo = True" and just click on any square of the gui, the random operator should work by itself, while the policy takes alternate turns.
 
 To play via text with the network, as requested by the GithubGist, import the functions from game.py and use a python interactive console.
+
+To evaluate the current policy, run evaluate.py
