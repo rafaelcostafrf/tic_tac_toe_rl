@@ -3,55 +3,19 @@ import numpy as np
 from game import game
 from ppo import PPO
 from memory import memory
-
+from train import board2list, action2place, random_play
 # Change o and x here. Note - First player should always be the bot (but it does not mean it starts first)
 first_player = 'o'  # ALWAYS THE BOT
 second_player = 'x'
 
-# Convert the 3x3 board to a linear list 1x9
-def board2list(board):
-    board_list = []
-    x_array = np.zeros(9)
-    empty_array = np.ones(9)
-    o_array = np.zeros(9)
-    for row in board:
-        board_list += row
-    for i in range(9):
-        if board_list[i] == second_player:
-            o_array[i] = 1
-            empty_array[i] = 0
-        if board_list[i] == first_player:
-            x_array[i] = 1
-            empty_array[i] = 0
-    input_array = np.concatenate((o_array, x_array, empty_array))
-    return input_array, board_list
-
-
-# Converts the action in 1x9 to 3x3
-def action2place(action):
-    place = [int(action / 3), action[0] % 3]
-    return place
-
-
-# Random operator
-def random_play(board_list):
-    possible_play = []
-    for i, entry in enumerate(board_list):
-        if entry == '':
-            possible_play.append(i)
-    random_play = np.random.choice(possible_play).reshape(-1)
-    random_play = action2place(random_play)
-    return random_play
-
-
-# Run the training
+# Run the evaluate
 if __name__ == '__main__':
     BATCH_SIZE = 2048*2
     winner_dict = {first_player: 0, second_player: 0}
 
     memory_game = memory()
     tic_tac_toe = game()
-    policy = PPO(9 * 3, 9)
+    policy = PPO(9 * 3, 9, evaluation = True)
 
     samples = 0
     episode = 0
@@ -77,10 +41,11 @@ if __name__ == '__main__':
             memory_game.append_memory_rt(reward, done)
             samples += 1
         if samples > BATCH_SIZE:
-            policy.update(memory_game, episode)
             memory_game.clear_memory()
-            samples = 0
             print('Win Rate: {:.2%}'.format(winner_dict[first_player] / episode))
+            winner_dict = {first_player: 0, second_player: 0}
+            samples = 0
+            episode = 0
         episode += 1
         winner = tic_tac_toe.winner
         if winner is not None:

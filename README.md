@@ -15,13 +15,11 @@ Note that any action is possible, even actions that are considered wrong movemen
 
 ### Training
 
-The training is done using the PPO algorithm, using a batch size of 2000 samples, and a minibatch size of 1000 samples. The network topography consists of 2 linear layers of size 128 using the tanh activation function, except the last layer of the critic and actor networks. The last layer of the critic network does not have a activation function, and the last layer of the actor network has a softmax activation function.
+The training is done using the PPO algorithm, using a batch size of 2000 samples, and a minibatch size of 1000 samples. The network topography consists of 3 linear layers of size 32 using the tanh activation function, except the last layer of the critic and actor networks. The last layer of the critic network does not have a activation function, and the last layer of the actor network has a softmax activation function.
 
 The training process consists of determining if the policy, or the random operator, should have the first go, using a random function. Then the policy and random operator takes turns on the board, until the game is won or a wrong movement is taken. If the random operator wins, the policy gets the opposite reward of the random operator win condition reward.
 
 The training is relatively fast until the network learns how to play by the rules, after this point, it slows down a lot, as the random operator does not play with the objective to win. Only eventually the random operator will show some resemblance to a human playing the game. With enough time the neural network should learn all the random combinations that lead to success and failure, increasing its returns and win rate. 
-
-There is a slight e-greedy policy to improve exploration. 
 
 ### GUI
 
@@ -29,11 +27,11 @@ A simple GUI was developed using tkinter. It works exactly as the training proce
 
 ### Performance
 
-Currently the network is showing a win rate of 90% over the random operator. 
+Currently the network is showing a win rate of 86% over the random operator. 
 
-The returns of last training episodes are shown below. The trend is still upward, should be improving slowly over a lot of training episodes still. 
+The returns of training are shown below. The trend is still upward, should be improving slowly over a lot of training episodes still. 
 
-![Returns](returns.png)
+![Returns](returns.png?raw=true "Returns")
 
 ### How to use
 
@@ -48,5 +46,3 @@ To play with the network, just run gui.py
 To see the demo, change the demo flag inside gui.py to "demo = True" and just click on any square of the gui, the random operator should work by itself, while the policy takes alternate turns.
 
 To play via text with the network, as requested by the GithubGist, import the functions from game.py and use a python interactive console.
-
-To evaluate the current policy, run evaluate.py

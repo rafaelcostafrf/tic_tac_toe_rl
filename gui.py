@@ -10,7 +10,7 @@ root = tkinter.Tk()
 root.title('Tic Tac Toe')
 
 memory_game = memory()
-policy = PPO(9*3, 9, summary=True)
+policy = PPO(9*3, 9, evaluation=True)
 tic_tac_toe = game()
 board = tic_tac_toe.reset()
 

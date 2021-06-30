@@ -8,7 +8,7 @@ from model import ActorCritic
 
 
 ## HYPERPARAMETERS - CHANGE IF NECESSARY ##
-lr_ac = 0.0001
+lr_ac = 0.0003
 lr_ct = 0.001
 
 action_std = 0.1
@@ -19,7 +19,7 @@ eps_clip = 0.2
 gamma = 0.99
 betas = (0.9, 0.999)
 DEBUG = 0
-BATCH_SIZE = 512
+BATCH_SIZE = 1024
 
 
 def plot_returns(returns, values, terminals):
@@ -33,18 +33,20 @@ def plot_returns(returns, values, terminals):
 
 
 class PPO:
-    def __init__(self, input_dim, action_dim, summary = False):
-        self.summary = summary
-        if not self.summary:
+    def __init__(self, input_dim, action_dim, evaluation = False):
+        self.evaluation = evaluation
+        if not self.evaluation:
             from torch.utils.tensorboard import SummaryWriter
             self.writer = SummaryWriter()
+            eps = 0.1
+        else:
+            eps = 0
         self.device = torch.device("cuda:0")
-
-        self.policy = ActorCritic(N=32, state_dim=input_dim, action_dim=action_dim, action_std=0.1)
+        self.policy = ActorCritic(N=128, state_dim=input_dim, action_dim=action_dim, eps_threshold=eps)
         self.optimizer_ac = torch.optim.Adam(self.policy.actor.parameters(), lr=lr_ac, betas=betas)
         self.optimizer_ct = torch.optim.Adam(self.policy.critic.parameters(), lr=lr_ct, betas=betas)
 
-        self.policy_old = ActorCritic(N=32, state_dim=input_dim, action_dim=action_dim, action_std=0.1)
+        self.policy_old = ActorCritic(N=128, state_dim=input_dim, action_dim=action_dim, eps_threshold=eps)
         self.policy_old.load_state_dict(self.policy.state_dict())
 
         try:
@@ -156,7 +158,7 @@ class PPO:
         actor_loss = self.optimizer_step(old_states, old_actions, old_logprobs, returns, advantages)
         critic_loss = self.critic_optimizer_step(old_states, old_actions, old_logprobs, returns, advantages)
 
-        if not self.summary:
+        if not self.evaluation:
             self.writer.add_scalar("Critic loss", critic_loss, episode)
             self.writer.add_scalar("Actor loss", actor_loss, episode)
             self.writer.add_scalar("Returns Mean", returns.mean(), episode)
