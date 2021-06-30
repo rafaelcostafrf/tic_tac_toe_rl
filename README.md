@@ -29,7 +29,7 @@ A simple GUI was developed using tkinter. It works exactly as the training proce
 
 Currently the network is showing a win rate of 86% over the random operator. 
 
-The returns of training are shown below. The trend is still upward, should be improving slowly over a lot of training episodes still. 
+The returns of last training episodes are shown below. The trend is still upward, should be improving slowly over a lot of training episodes still. 
 
 ![Returns](returns.png)
 
