@@ -15,7 +15,7 @@ Note that any action is possible, even actions that are considered wrong movemen
 
 ### Training
 
-The training is done using the PPO algorithm, using a batch size of 2000 samples, and a minibatch size of 1000 samples. The network topography consists of 3 linear layers of size 32 using the tanh activation function, except the last layer of the critic and actor networks. The last layer of the critic network does not have a activation function, and the last layer of the actor network has a softmax activation function.
+The training is done using the PPO algorithm, using a batch size of 2048 samples, and a minibatch size of 512 samples. The network topography consists of 3 linear layers of size 32 using the tanh activation function, except the last layer of the critic and actor networks. The last layer of the critic network does not have a activation function, and the last layer of the actor network has a softmax activation function.
 
 The training process consists of determining if the policy, or the random operator, should have the first go, using a random function. Then the policy and random operator takes turns on the board, until the game is won or a wrong movement is taken. If the random operator wins, the policy gets the opposite reward of the random operator win condition reward.
 
