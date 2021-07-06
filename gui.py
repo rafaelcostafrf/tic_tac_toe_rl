@@ -10,35 +10,46 @@ root = tkinter.Tk()
 root.title('Tic Tac Toe')
 
 memory_game = memory()
-policy = PPO(9*3, 9, evaluation=True)
+policy = PPO(9*2, 9, evaluation=True)
 tic_tac_toe = game()
 board = tic_tac_toe.reset()
 
 # If demo is true, play with random operator
 demo = False
 
+
 def start_check(board):
+    """
+    Checks if the ppo agent or the player starts first, returns the updated board
+    :param board: list of lists (3x3)
+    :return: board
+    """
     start = np.random.random()
     if start > 0.5:
-        input_array, board_list = board2list(board)
+        input_array, board_list = board2list(board, main=first_player, opponent=second_player)
         action = policy.select_action(input_array, memory_game)
         action = action2place(action)
-        board, _, done = tic_tac_toe.step(first_player, action)
+        board, _, done, _ = tic_tac_toe.step(first_player, action)
     return board
 
 def button_click(i):
-    input_array, board_list = board2list(tic_tac_toe.board)
+    """
+    Checks if a button on the board has been clicked, then runs a step on the algorithm
+    :param i:
+    :return:
+    """
+    input_array, board_list = board2list(tic_tac_toe.board, main=first_player, opponent=second_player)
     if demo:
-        place = random_play(board_list)
+        place = random_play(input_array, board_list, ppo_opponent=False)
     else:
         place = action2place(np.array([i]))
-    board, _, done = tic_tac_toe.step(second_player, place)
-    input_array, board_list = board2list(board)
+    board, _, done, _ = tic_tac_toe.step(second_player, place)
+    input_array, board_list = board2list(tic_tac_toe.board, main=first_player, opponent=second_player)
     if not done:
         action = policy.select_action(input_array, memory_game)
         action = action2place(action)
-        board, _, done = tic_tac_toe.step(first_player, action)
-        input_array, board_list = board2list(board)
+        board, _, done, _ = tic_tac_toe.step(first_player, action)
+        input_array, board_list = board2list(tic_tac_toe.board, main=first_player, opponent=second_player)
     if done:
         for i, entry in enumerate(board_list):
             buttons_list[i].config(text=entry, bg='green')
@@ -46,7 +57,7 @@ def button_click(i):
             tkinter.messagebox.showinfo('Winner', 'The winner is {}'.format(tic_tac_toe.winner))
         board = tic_tac_toe.reset()
         board = start_check(board)
-    input_array, board_list = board2list(board)
+    input_array, board_list = board2list(tic_tac_toe.board, main=first_player, opponent=second_player)
     for i, entry in enumerate(board_list):
         buttons_list[i].config(text=entry, bg='gray80')
 
@@ -59,8 +70,7 @@ for i in range(9):
     buttons_list[i].grid(row=int(i/3), column=i%3)
 
 board = start_check(board)
-input_array, board_list = board2list(board)
+input_array, board_list = board2list(board, main=first_player, opponent=second_player)
 for i, entry in enumerate(board_list):
     buttons_list[i].config(text=entry, bg='gray80')
-print(board_list)
 root.mainloop()

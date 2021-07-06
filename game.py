@@ -26,34 +26,40 @@ class game():
 
         if not occupied and not wrong_place:
             self.board[place[0]][place[1]] = mark.lower()
-            reward, done, self.winner = self.get_reward()
+            reward, done, self.winner, reason = self.get_reward()
         else:
             done = True
             reward = -5
-        return self.board, reward, done
+            reason = 'wrong_move'
+        return self.board, reward, done, reason
 
     def get_reward(self):
         # Checks terminal states and current reward
         reward = 0
         done = False
         winner = None
+        reason = ''
         if self.check_horizontal():
             reward = 3
             winner = self.current_player
+            reason = 'horizontal'
             done = True
         elif self.check_vertical():
             reward = 1
             winner = self.current_player
+            reason = 'vertical'
             done = True
         elif self.check_diagonal():
             reward = 1
             winner = self.current_player
+            reason = 'diagonal'
             done = True
         elif self.check_top_marks():
             reward = 0.5
             winner = self.top_marks_winner
+            reason = 'tie'
             done = True
-        return reward, done, winner
+        return reward, done, winner, reason
 
     def check_horizontal(self):
         # Horizontal win terminal state
@@ -107,6 +113,7 @@ class game():
                 counter_player[entry] += 1
                 if counter_player[entry] > 1:
                     self.top_marks_winner = entry
+
                     return True
         return False
 

@@ -11,16 +11,16 @@ from model import ActorCritic
 lr_ac = 0.0003
 lr_ct = 0.001
 
-action_std = 0.1
-K_epochs = 12
-critic_epochs = 12
+K_epochs = 20
+critic_epochs = 20
 
 eps_clip = 0.2
-gamma = 0.99
+gamma = 0.8
 betas = (0.9, 0.999)
 DEBUG = 0
 BATCH_SIZE = 1024
 
+log_interval = 10
 
 def plot_returns(returns, values, terminals):
     f, ax = plt.subplots()
@@ -38,15 +38,15 @@ class PPO:
         if not self.evaluation:
             from torch.utils.tensorboard import SummaryWriter
             self.writer = SummaryWriter()
-            eps = 0.1
+            eps = 0.0
         else:
             eps = 0
         self.device = torch.device("cuda:0")
-        self.policy = ActorCritic(N=128, state_dim=input_dim, action_dim=action_dim, eps_threshold=eps)
+        self.policy = ActorCritic(N=1024, state_dim=input_dim, action_dim=action_dim, eps_threshold=eps)
         self.optimizer_ac = torch.optim.Adam(self.policy.actor.parameters(), lr=lr_ac, betas=betas)
         self.optimizer_ct = torch.optim.Adam(self.policy.critic.parameters(), lr=lr_ct, betas=betas)
 
-        self.policy_old = ActorCritic(N=128, state_dim=input_dim, action_dim=action_dim, eps_threshold=eps)
+        self.policy_old = ActorCritic(N=1024, state_dim=input_dim, action_dim=action_dim, eps_threshold=eps)
         self.policy_old.load_state_dict(self.policy.state_dict())
 
         try:
@@ -57,14 +57,15 @@ class PPO:
         except:
             torch.save(self.policy.state_dict(), './policy/tic_tac_toe.pth')
             torch.save(self.policy_old.state_dict(), './policy/tic_tac_toe_old.pth')
-            print('New Landing Policy generated')
+            print('New Policy generated')
 
         self.MseLoss = nn.MSELoss()
 
     def select_action(self, state, memory):
+        evaluation = self.evaluation
         state = torch.Tensor(state).to(self.device).detach()
         network_input = state.unsqueeze(0)
-        out = self.policy_old.act(network_input, memory).cpu().numpy()
+        out = self.policy_old.act(network_input, memory, evaluation).cpu().numpy()
         return out
 
     def split_tensors(self, list_of_tensors):
@@ -133,7 +134,7 @@ class PPO:
         Calculates the advantage using the GAE - Generalized Advantage Estimation
         """
         returns = torch.empty(*rewards.size(), dtype=torch.float).to(self.device)
-        gmma = 0.6
+        gmma = gamma
 
         for i in reversed(range(len(rewards))):
             if i == len(rewards) - 1:
@@ -153,12 +154,12 @@ class PPO:
         returns = self.get_advantages(np.logical_not(memory.is_terminals), torch.tensor(memory.rewards).to(self.device))
 
         advantages = returns - state_values.detach()
-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-5).detach()
+        # advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-5).detach()
 
         actor_loss = self.optimizer_step(old_states, old_actions, old_logprobs, returns, advantages)
         critic_loss = self.critic_optimizer_step(old_states, old_actions, old_logprobs, returns, advantages)
 
-        if not self.evaluation:
+        if (not self.evaluation) and episode % log_interval == 0:
             self.writer.add_scalar("Critic loss", critic_loss, episode)
             self.writer.add_scalar("Actor loss", actor_loss, episode)
             self.writer.add_scalar("Returns Mean", returns.mean(), episode)

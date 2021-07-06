@@ -30,3 +30,11 @@ class memory:
         self.rewards = np.asarray(self.rewards)
         self.is_terminals = np.asarray(self.is_terminals)
         self.values = np.asarray(self.values)
+
+    def append_memory(self, memory):
+        self.actions += memory.actions
+        self.states += memory.states
+        self.logprobs += memory.logprobs
+        self.rewards += memory.rewards
+        self.is_terminals += memory.is_terminals
+        self.values += memory.values

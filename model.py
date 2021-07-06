@@ -1,9 +1,23 @@
 import torch
 import torch.nn as nn
-import numpy as np
 from torch.distributions import Categorical
+from torch.functional import F
 
 device = torch.device("cuda:0")
+
+class Actor(nn.Module):
+    def __init__(self, state_dim, h1, h2, output_dim):
+        super(Actor, self).__init__()
+
+        self.fc_1 = nn.Linear(state_dim, h1)
+        self.fc_2 = nn.Linear(h1, h2)
+        self.fc_3 = nn.Linear(h2, output_dim)
+
+    def forward(self, input):
+        x = F.relu(self.fc_1(input))
+        x = F.relu(self.fc_2(x))
+        x = torch.softmax(self.fc_3(x), dim=1)
+        return x
 
 class ActorCritic(nn.Module):
     def __init__(self, N, state_dim, action_dim, eps_threshold):
@@ -13,17 +27,14 @@ class ActorCritic(nn.Module):
 
         super(ActorCritic, self).__init__()
 
-        self.actor = nn.Sequential(
-            nn.Linear(state_dim, h1),
-            nn.Tanh(),
-            nn.Linear(h1, action_dim),
-            nn.Softmax(dim=-1)
-        ).to(device)
+        self.actor = Actor(state_dim, h1, h2, action_dim).to(device)
 
         self.critic = nn.Sequential(
             nn.Linear(state_dim, h1),
-            nn.Tanh(),
-            nn.Linear(h1, 1),
+            nn.ReLU(),
+            nn.Linear(h1, h2),
+            nn.ReLU(),
+            nn.Linear(h2, 1),
         ).to(device)
         self.action_var = torch.full((action_dim,), 1, device=device, dtype=torch.double)
 
@@ -31,26 +42,24 @@ class ActorCritic(nn.Module):
     def forward(self):
         raise NotImplementedError
 
-    def act(self, state, memory):
-        sample = np.random.random()
-        if sample > self.eps_threshold:
-            with torch.no_grad():
-                action_probabilities = self.actor(state)
-        else:
-            action_probabilities = torch.tensor(np.random.random([1, 9]), device=device)
+    def act(self, state, memory, evaluation=False):
 
-
-
-        # action_probabilities += torch.clamp(torch.normal(torch.zeros(9, device=device), 0.1), 0, 1)
+        action_probabilities = self.actor(state)
 
         value = self.critic(state)
 
         dist = Categorical(action_probabilities)
 
-        action = dist.sample()
+        # if in evaluation mode, execute the most probable action
+        # else make an action distribution based on probabilities
+        if evaluation:
+            action = torch.argmax(action_probabilities, dim=1)
+        else:
+            action = dist.sample()
 
         action_logprob = dist.log_prob(action)
-        memory.append_memory_as(action.detach(), state.detach(), action_logprob.detach(), value.detach())
+        if not evaluation:
+            memory.append_memory_as(action.detach(), state.detach(), action_logprob.detach(), value.detach())
 
         return action.detach()
 
