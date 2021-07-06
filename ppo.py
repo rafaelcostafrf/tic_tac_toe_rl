@@ -43,19 +43,11 @@ class PPO:
         else:
             eps = 0
         self.device = torch.device("cuda:0")
-<<<<<<< HEAD
         self.policy = ActorCritic(N=2048, state_dim=input_dim, action_dim=action_dim, eps_threshold=eps)
         self.optimizer_ac = torch.optim.Adam(self.policy.actor.parameters(), lr=lr_ac, betas=betas)
         self.optimizer_ct = torch.optim.Adam(self.policy.critic.parameters(), lr=lr_ct, betas=betas)
 
         self.policy_old = ActorCritic(N=2048, state_dim=input_dim, action_dim=action_dim, eps_threshold=eps)
-=======
-        self.policy = ActorCritic(N=1024, state_dim=input_dim, action_dim=action_dim, eps_threshold=eps)
-        self.optimizer_ac = torch.optim.Adam(self.policy.actor.parameters(), lr=lr_ac, betas=betas)
-        self.optimizer_ct = torch.optim.Adam(self.policy.critic.parameters(), lr=lr_ct, betas=betas)
-
-        self.policy_old = ActorCritic(N=1024, state_dim=input_dim, action_dim=action_dim, eps_threshold=eps)
->>>>>>> 12926892fcc780e2939dbaa5eaffd7c438beb7a3
         self.policy_old.load_state_dict(self.policy.state_dict())
 
         try:
@@ -142,10 +134,6 @@ class PPO:
         """
         Calculates the advantage using the GAE - Generalized Advantage Estimation
         """
-<<<<<<< HEAD
-
-=======
->>>>>>> 12926892fcc780e2939dbaa5eaffd7c438beb7a3
         returns = torch.empty(*rewards.size(), dtype=torch.float).to(self.device)
         gmma = gamma
 
@@ -154,13 +142,10 @@ class PPO:
                 returns[i] = rewards[i]
             else:
                 returns[i] = rewards[i] + gmma * returns[i + 1] * masks[i]
-<<<<<<< HEAD
         # print(masks)
         # print(rewards)
         # print(returns)
-=======
 
->>>>>>> 12926892fcc780e2939dbaa5eaffd7c438beb7a3
         return returns
 
     def update(self, memory, episode):
@@ -173,11 +158,8 @@ class PPO:
         returns = self.get_advantages(np.logical_not(memory.is_terminals), torch.tensor(memory.rewards).to(self.device))
 
         advantages = returns - state_values.detach()
-<<<<<<< HEAD
         # advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8).detach()
-=======
-        # advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-5).detach()
->>>>>>> 12926892fcc780e2939dbaa5eaffd7c438beb7a3
+
 
         actor_loss = self.optimizer_step(old_states, old_actions, old_logprobs, returns, advantages)
         critic_loss = self.critic_optimizer_step(old_states, old_actions, old_logprobs, returns, advantages)
